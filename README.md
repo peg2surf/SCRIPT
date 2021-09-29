@@ -5,12 +5,31 @@ A test of concept for a personal "assembly"
 ## Basics
 
 Based on assembly, SCRIPT has no variables and is based on simple commands,
-using instead a network of nodes and paths.
+using instead a network of nodes and paths. You can create and release orbs.
+While a orb is connected to the ORIGIN it will exist. If it is release it can
+only continue existing if it it powered by the node it currently resides.
+If node does not have a flow (e.i a flow of 0) then the orb disapears.
+Two orbs cannot exist in the same node so the newest node will be destroyed if
+it attempts to be created.
 
-`section .data:`
+### section .data:
 
 This creates the network on a basis of one to many.
-You can also set the flow of points so they will always remain unchanged
-ex:
+You can also set the flow of points so they will always remain unchanged. ex:
 `VAR1 -> VAR2, VAR3, VAR4`
 `SET VAR1 1`
+
+### .start
+
+This where the code really starts and where the logic occurs.
+
+### Commands
+
+_`CRT` creates a orb at the end of the path
+_`RLS` releases the current orb from the end of the path
+_`FLW [VAL]` sets the value of the flow with `VAL`
+_`PTH [VARS]` sets the path with `VARS`. Leave empty to reset to origin
+_`CMP` saves the current value of wheter the orb exist or not
+_`JMP [NAME]` jumps to a certain function denominated by `[NAME]:`
+_`JPT [NAME]` same as jump but only if CMP was true
+_`JPF [NAME]` same as jump but only if CMP was false \*`END` ends code regardless of current line
