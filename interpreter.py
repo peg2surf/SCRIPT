@@ -22,7 +22,7 @@ compare: int = None
 #FLOW, ORB, SET
 
 
-def flow_update():
+def flow_update() -> None:
     global network
     global path
     global flow
@@ -34,13 +34,13 @@ def flow_update():
     network[path[-1]][1] = orb | network[path[-1]][1]
 
 
-def val_set(vars: list, flow: int):
+def val_set(vars: list, flow: int) -> None:
     for x in vars:
         network[y][0] = flow
         network[y][2] = True
 
 
-def connect(vars):
+def connect(vars: list) -> None:
     if vars[0] not in network.keys():
         conections[vars[0]] = []
     for x in vars[1:]:
@@ -51,7 +51,7 @@ def connect(vars):
         network[x] = [0, False, False]
 
 
-def transl(text: str):
+def transl(text: str) -> None:
     global instructions
     instructions = [
         list(filter(None, map(lambda x: x.upper(),
@@ -61,7 +61,7 @@ def transl(text: str):
     ]
 
 
-def run(code: str):
+def run(code: str) -> None:
     global network
     global instructions
     global path
@@ -120,7 +120,7 @@ def filetostring(filename: str) -> str:
         return file.read()
 
 
-def viz_conections(strict: bool = True):
+def viz_conections(strict: bool = True) -> None:
     from graphviz import Graph, Digraph, Source
     g = Graph(strict=strict)
     g.node('ORG', color='purple')
@@ -135,7 +135,9 @@ def viz_conections(strict: bool = True):
 
 
 def main():
-    run(filetostring("SCRIPT\ORGATE"))
+    run(filetostring(
+        '\\'.join(str(__file__).split("\\")[:-1]) + "\examples\ORGATE")
+        )
     print(conections)
     print(network)
     viz_conections()
