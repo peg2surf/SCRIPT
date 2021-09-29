@@ -34,6 +34,7 @@ This where the code really starts and where the logic occurs.
 - `JPT [NAME]` same as jump but only if CMP was true
 - `JPF [NAME]` same as jump but only if CMP was false
 - `END` ends code regardless of current line
+- `;` can be used to end lines but is not nessecary if newlines are used
 
 ### Example
 
