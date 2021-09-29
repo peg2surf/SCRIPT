@@ -61,19 +61,22 @@ def transl(text: str) -> None:
     ]
 
 
-def run(code: str) -> None:
+def run(code: str, instructions_on: bool = False, endstate: bool = False, visualize_connections: bool = False) -> None:
     global network
     global instructions
     global path
     global orb
     global flow
     global compare
+
     transl(code)
+
     data: int = instructions.index(['SECTION', '.DATA:'])
     start: int = instructions.index(['_START:'])
 
     for x in range(data, start):
-        print(instructions[x])
+        if instructions_on:
+            print(instructions[x])
         if "->" in instructions[x]:
             clone = instructions[x][:instructions[x].index(
                 '->')] + instructions[x][instructions[x].index('->') + 1].split(',')
@@ -84,7 +87,8 @@ def run(code: str) -> None:
                 network[y][2] = True
     x = start
     while x < len(instructions):
-        print(instructions[x])
+        if instructions_on:
+            print(instructions[x])
         if instructions[x][0] == "CRT":
             orb = not(network[path[-1]][1])
             #print(f'Orb: {orb}')
@@ -113,6 +117,12 @@ def run(code: str) -> None:
             break
         flow_update()
         x += 1
+    if endstate:
+        print(f""" conections: {conections} \n network : {network} 
+        \n path : {path} \n orb : {orb} \n flow : {flow} \n compare : {compare}
+        """)
+    if visualize_connections:
+        viz_conections()
 
 
 def filetostring(filename: str) -> str:
@@ -136,11 +146,7 @@ def viz_conections(strict: bool = True) -> None:
 
 def main():
     run(filetostring(
-        '\\'.join(str(__file__).split("\\")[:-1]) + "\examples\ORGATE")
-        )
-    print(conections)
-    print(network)
-    viz_conections()
+        '\\'.join(str(__file__).split("\\")[:-1]) + "\examples\ORGATE"))
 
 
 if __name__ == "__main__":
