@@ -5,10 +5,10 @@ using instead a network of nodes and paths. You can create and release orbs.
 While a orb is connected to the ORIGIN it will exist. If it is release it can
 only continue existing if it it powered by the node it currently resides.
 If node does not have a flow (e.i a flow of 0) then the orb disapears.
-Two orbs cannot exist in the same node so the newest node will be destroyed if
+Two orbs cannot exist in the same node so the newest orb will be destroyed if
 it attempts to be created.
 
-## Basics
+## Basicss
 
 ### section .data:
 
