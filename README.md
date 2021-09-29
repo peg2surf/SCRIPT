@@ -15,9 +15,9 @@ it attempts to be created.
 This creates the network on a basis of one to many.
 You can also set the flow of points so they will always remain unchanged. ex:
 
-`VAR1 -> VAR2, VAR3, VAR4`
+- `[VAR1] -> [VAR]` creates a connection between `VAR1` and all values in `VAR`
 
-`SET VAR1 1`
+- `SET [VAR1] [VAL]` will create a constant value of flow at `VAR1` by `VAL`
 
 ### .start
 
