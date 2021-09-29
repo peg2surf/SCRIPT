@@ -1,0 +1,35 @@
+section .data:
+  ORG -> VAR1, VAR2, VAR3
+
+  SET VAR1, VAR2 1
+
+_start:
+  PTH VAR1
+  CRT
+  RLS
+  CRT
+  CMP
+  JPT False
+  RLS
+  PTH VAR2
+  CRT
+  RLS
+  CRT
+  CMP
+  JPT False
+  RLS
+  JMP True
+
+False:
+  RLS
+  PTH VAR3
+  END
+
+True:
+  PTH VAR3
+  CRT
+  FLW 1
+  END
+
+Reset:
+  
