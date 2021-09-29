@@ -25,11 +25,12 @@ This where the code really starts and where the logic occurs.
 
 ### Commands
 
-_`CRT` creates a orb at the end of the path
-_`RLS` releases the current orb from the end of the path
-_`FLW [VAL]` sets the value of the flow with `VAL`
-_`PTH [VARS]` sets the path with `VARS`. Leave empty to reset to origin
-_`CMP` saves the current value of wheter the orb exist or not
-_`JMP [NAME]` jumps to a certain function denominated by `[NAME]:`
-_`JPT [NAME]` same as jump but only if CMP was true
-_`JPF [NAME]` same as jump but only if CMP was false \*`END` ends code regardless of current line
+- `CRT` creates a orb at the end of the path
+- `RLS` releases the current orb from the end of the path
+- `FLW [VAL]` sets the value of the flow with `VAL`
+- `PTH [VARS]` sets the path with `VARS`. Leave empty to reset to origin
+- `CMP` saves the current value of wheter the orb exist or not
+- `JMP [NAME]` jumps to a certain function denominated by `[NAME]:`
+- `JPT [NAME]` same as jump but only if CMP was true
+- `JPF [NAME]` same as jump but only if CMP was false
+- `END` ends code regardless of current line
