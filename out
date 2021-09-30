@@ -3,6 +3,5 @@ strict graph {
 	ORG -- VAR1 [color=black]
 	ORG -- VAR2 [color=black]
 	ORG -- VAR3 [color=red]
-	VAR2 [color=blue]
-	VAR3 [color=blue]
+	VAR1 [color=blue]
 }
