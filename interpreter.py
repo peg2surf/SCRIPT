@@ -94,7 +94,7 @@ def cycle() -> None:
     global flow
     global orb
     for x in path:
-        if not(network.get(x)):
+        if network.get(x) == None:
             raise NameError('Node does not exist')
     for x in network:
         if not network[x][SET_LOC]:
@@ -115,13 +115,13 @@ def origin_set(new_origin: str) -> None:
     """
     global origin
     global path
+    if conections.get(new_origin) == None:
+        raise NameError('Node does not exist')
     origin = new_origin
     path = [new_origin]
-    if not (conections.get(new_origin)):
-        raise NameError('Node does not exist')
 
 
-def connect(origin: str, vars: list) -> None:
+def connect(origin: list, vars: list) -> None:
     """
     Connects an origin to array nodes to array of node in a
     one direction fashion.
@@ -130,11 +130,12 @@ def connect(origin: str, vars: list) -> None:
     """
     global network
     global conections
-    if origin not in network.keys():
-        create_node(origin)
-    for x in vars:
-        conections[origin].append(x)
-        create_node(x)
+    for x in origin:
+        if x not in network.keys():
+            create_node(x)
+        for y in vars:
+            conections[x].append(y)
+            create_node(y)
 
 
 def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
@@ -148,12 +149,12 @@ def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
     if vars == [INS_PATH]:
         global path
         for x in path:
-            if not (network.get(x)):
+            if network.get(x) == None:
                 raise NameError('Node does not exist')
             network[x][FLOW_LOC] = flow
             network[x][SET_LOC] = setted
     for x in vars:
-        if not (network.get(x)):
+        if network.get(x) == None:
             raise NameError('Node does not exist')
         network[x][FLOW_LOC] = flow
         network[x][SET_LOC] = setted
@@ -185,7 +186,7 @@ def path_update(new_path: list) -> None:
         path = [origin] + new_path
     for x in range(len(path) - 1):
         if path[x+1] not in conections[path[x]]:
-            connect(path[x], [path[x+1]])
+            raise NameError(f'Path {new_path} does not exist')
 
 
 def release() -> None:
@@ -243,7 +244,8 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
     data: int = instructions.index(INS_DATA)
     start: int = instructions.index(INS_START)
 
-    for x in range(data, start):
+    x = data + 1
+    while x < start:
         if instructions_on:
             print(instructions[x])
         if instructions[x] == INS_DATA:
@@ -253,14 +255,17 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         elif INS_CONNECT in instructions[x]:
             clone = instructions[x][:instructions[x].index(
                 INS_CONNECT)] + instructions[x][instructions[x].index(INS_CONNECT) + 1].split(',')
-            connect(clone[0], clone[1:])
+            connect(clone[0].split(','), clone[1:])
         elif instructions[x][0] == INS_SET:
             node_flow_set(instructions[x][1].split(','), instructions[x][2])
         elif instructions[x][0] == INS_UNSET:
             node_flow_set(vars=instructions[x][1].split(
                 ','), flow=0, setted=False)
         else:
-            raise NameError(f"Invalid instruction: {instructions[x][0]}")
+            [create_node(z) for y in instructions[x]
+             for z in y.split(',')]
+        x += 1
+
     x = start + 1
     while x < len(instructions):
         if instructions_on:
@@ -331,6 +336,8 @@ def vizualize_conections(filename: str = 'out', strict: bool = True, visualize: 
     for x in conections.keys():
         if network[x][ORB_LOC]:
             g.node(str(x), color='blue')
+        else:
+            g.node(str(x))
         for y in conections[x]:
             g.edge(str(x), str(y),
                    color=('red' if x in path and y in path else 'black'))
