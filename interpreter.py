@@ -126,7 +126,8 @@ def connect(origin: list, vars: list) -> None:
     Connects an origin to array nodes to array of node in a
     one direction fashion.
     \norigin the origin for all the connections
-    \nvars all the items connected to origin
+    \nvars all the items connected to origin all the vars 
+    will connect with all origins
     """
     global network
     global conections
@@ -134,8 +135,8 @@ def connect(origin: list, vars: list) -> None:
         if x not in network.keys():
             create_node(x)
         for y in vars:
-            conections[x].append(y)
             create_node(y)
+            conections[x].append(y)
 
 
 def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
@@ -144,6 +145,7 @@ def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
     or any other factor. Used to simulate a another ORG.
     \nvars all item to set flow
     \nflow the flow to set the items in var
+    \nsetted if this operation is to set or unset current vars
     """
     global network
     if vars == [INS_PATH]:
@@ -171,6 +173,7 @@ def create() -> None:
 def flow_update(new_flow: int) -> None:
     """
     Runs release command
+    \nnew_flow flow to change current flow
     """
     global flow
     flow = new_flow
@@ -251,11 +254,11 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         if instructions[x] == INS_DATA:
             pass
         elif instructions[x][0] == INS_ORIGIN:
-            origin_set(instructions[x][1])
+            origin_set(new_origin=instructions[x][1])
         elif INS_CONNECT in instructions[x]:
-            clone = instructions[x][:instructions[x].index(
-                INS_CONNECT)] + instructions[x][instructions[x].index(INS_CONNECT) + 1].split(',')
-            connect(clone[0].split(','), clone[1:])
+            clone = instructions[x]
+            clone.remove(INS_CONNECT)
+            connect(clone[0].split(','), clone[1].split(','))
         elif instructions[x][0] == INS_SET:
             node_flow_set(instructions[x][1].split(','), instructions[x][2])
         elif instructions[x][0] == INS_UNSET:
