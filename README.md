@@ -25,6 +25,7 @@ This where the code really starts and where the logic occurs.
 
 ### Commands
 
+- `[VAR1]` creates a node `VAR1` with no connection. Multiple can be created using spaces and commas.
 - `[VAR1] -> [VAR2]` creates and connects VAR1 and VAR2. VAR2 can be multiple. Can only be used in `section .data`
 - `SET [VAR1] [VAL]` creates and sets a constant value of flow at `VAR1` by `VAL`
 - `UST [VAR1]` unsets the VAR1 if set
@@ -33,7 +34,7 @@ This where the code really starts and where the logic occurs.
 
 - `CRT` creates a orb at the end of the path
 - `FLW [VAL]` sets the value of the flow with `VAL`
-- `PTH [VARS]` sets the path with `VARS`. Leave empty to reset to origin
+- `PTH [VARS]` sets the path with `VARS`. Leave empty to reset to origin.
 - `RLS` releases the current orb from the end of the path
 - `CMP` saves the current value of wheter the orb exist or not
 - `JMP [NAME]` jumps to a certain function denominated by `[NAME]:`
