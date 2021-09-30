@@ -10,7 +10,7 @@ it attempts to be created.
 
 ## Basicss
 
-### section .data:
+### section .data
 
 This creates the network on a basis of one to many.
 You can also set the flow of points so they will always remain unchanged. ex:
@@ -42,7 +42,8 @@ This where the code really starts and where the logic occurs.
 //ANDGATE
 
 \\Comment work like this
-//Or like this
+//or like this
+
 section .data:
   ORG -> VAR1, VAR2, VAR3
 

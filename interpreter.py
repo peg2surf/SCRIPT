@@ -23,6 +23,10 @@ compare: int = None
 
 
 def flow_update() -> None:
+    """
+    Every cycle, this function updates the values in network based on the changes
+    inacted. Affect only globals so no argument or outputs.
+    """
     global network
     global path
     global flow
@@ -34,24 +38,31 @@ def flow_update() -> None:
     network[path[-1]][1] = orb | network[path[-1]][1]
 
 
-def val_set(vars: list, flow: int) -> None:
+def node_flow_set(vars: list, flow: int) -> None:
+    """
+    'SET's a node so it's flow is unchagable regarless of path
+    or any other factor. Used to simulate a another ORG.
+    """
     for x in vars:
         network[y][0] = flow
         network[y][2] = True
 
 
-def connect(vars: list) -> None:
-    if vars[0] not in network.keys():
-        conections[vars[0]] = []
-    for x in vars[1:]:
+def connect(origin: str, vars: list) -> None:
+    """
+    Connects an array nodes to a
+    """
+    if origin not in network.keys():
+        conections[origin] = []
+    for x in vars:
         if x not in conections.keys():
             conections[x] = []
-        conections[vars[0]].append(x)
+        conections[origin].append(x)
     for x in conections.keys():
         network[x] = [0, False, False]
 
 
-def transl(text: str) -> None:
+def translate(text: str) -> None:
     global instructions
     instructions = [
         list(filter(None, map(lambda x: x.upper(),
@@ -61,7 +72,7 @@ def transl(text: str) -> None:
     ]
 
 
-def run(code: str, instructions_on: bool = False, endstate: bool = False, visualize_connections: bool = False) -> None:
+def run(code: str, instructions_on: bool = False, endstate: bool = False, visualize: bool = False) -> None:
     global network
     global instructions
     global path
@@ -69,7 +80,7 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
     global flow
     global compare
 
-    transl(code)
+    translate(code)
 
     data: int = instructions.index(['SECTION', '.DATA:'])
     start: int = instructions.index(['_START:'])
@@ -80,7 +91,7 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         if "->" in instructions[x]:
             clone = instructions[x][:instructions[x].index(
                 '->')] + instructions[x][instructions[x].index('->') + 1].split(',')
-            connect(clone)
+            connect(clone[0], clone[1:])
         if instructions[x][0] == "SET":
             for y in instructions[x][1].split(','):
                 network[y][0] = int(instructions[x][2])
@@ -90,39 +101,34 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         if instructions_on:
             print(instructions[x])
         if instructions[x][0] == "CRT":
+            print(not(network[path[-1]][1]))
             orb = not(network[path[-1]][1])
-            #print(f'Orb: {orb}')
-        if instructions[x][0] == "FLW":
+        elif instructions[x][0] == "FLW":
             flow = int(instructions[x][1])
-        if instructions[x][0] == "PTH":
+        elif instructions[x][0] == "PTH":
             path = []
             if len(instructions[x]) != 1:
                 path = ['ORG'] + instructions[x][1].split(',')
-            # print(path)
-        if instructions[x][0] == "RLS":
+        elif instructions[x][0] == "RLS":
             orb = False
-            #print(f'Orb: {orb}')
-        if instructions[x][0] == "CMP":
+        elif instructions[x][0] == "CMP":
             compare = orb
-            #print(f'Comp: {orb}')
-        if instructions[x][0] == "JMP":
+        elif instructions[x][0] == "JMP":
             x = instructions.index([instructions[x][1] + ':'])
-        if instructions[x][0] == "JPT" and compare:
+        elif instructions[x][0] == "JPT" and compare:
             x = instructions.index([instructions[x][1] + ':'])
-        if instructions[x][0] == "JPF" and not compare:
+        elif instructions[x][0] == "JPF" and not compare:
             x = instructions.index([instructions[x][1] + ':'])
-        if instructions[x][0] == "SET":
-            val_set(instructions[x][1].split(','), instructions[x][2])
-        if instructions[x][0] == "END":
+        elif instructions[x][0] == "SET":
+            node_flow_set(instructions[x][1].split(','), instructions[x][2])
+        elif instructions[x][0] == "END":
             break
         flow_update()
         x += 1
     if endstate:
-        print(f""" conections: {conections} \n network : {network} 
-        \n path : {path} \n orb : {orb} \n flow : {flow} \n compare : {compare}
-        """)
-    if visualize_connections:
-        viz_conections()
+        print(f"""conections: {conections} \nnetwork : {network} 
+        \npath : {path} \norb : {orb} \nflow : {flow} \ncompare : {compare}""")
+    vizualize_conections(visualize=visualize)
 
 
 def filetostring(filename: str) -> str:
@@ -130,8 +136,9 @@ def filetostring(filename: str) -> str:
         return file.read()
 
 
-def viz_conections(strict: bool = True) -> None:
-    from graphviz import Graph, Digraph, Source
+def vizualize_conections(strict: bool = True, visualize: bool = False) -> None:
+    global network
+    from graphviz import Graph, Source
     g = Graph(strict=strict)
     g.node('ORG', color='purple')
     for x in conections.keys():
@@ -145,8 +152,19 @@ def viz_conections(strict: bool = True) -> None:
 
 
 def main():
-    run(filetostring(
-        '\\'.join(str(__file__).split("\\")[:-1]) + "\examples\ORGATE"))
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("filename")
+    parser.add_argument("-i", "--instructions", action="store_true",
+                        help="Print instructions from interpreter")
+    parser.add_argument("-e", "--endstate", action="store_true",
+                        help="Print all states at end of run")
+    parser.add_argument("-v", "--visualize", action="store_true",
+                        help="Vizualize Graph at end")
+    args = parser.parse_args()
+
+    run(code=filetostring(args.filename), instructions_on=args.instructions,
+        endstate=args.endstate, visualize=args.visualize)
 
 
 if __name__ == "__main__":

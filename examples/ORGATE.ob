@@ -1,7 +1,7 @@
 section .data:
   ORG -> VAR1, VAR2, VAR3
 
-  SET VAR1 1
+  SET VAR2 1
 
 _start:
   PTH VAR1
