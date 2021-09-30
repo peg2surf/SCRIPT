@@ -20,21 +20,14 @@ Can be changed but probably should not.
 
 INS_NEWLINE = ';'
 INS_DIVIDE = ','
-INS_COMMENT = ['\\', '//']
+INS_COMMENT = ['\\\\', '//']
 
 INS_DATA = ['SECTION', '.DATA:']
 INS_START = ['_START:']
 
 INS_CONNECT = '->'
 INS_SET = "SET"
-INS_UNSET = "UNS"
-
-"""
-TOADD?: Beta to test in master
-Origin Shift = "@[New Origin]"
-Set Path = "SET PTH"
-Unset = "UST [var]"
-"""
+INS_UNSET = "UST"
 
 INS_ORIGIN = '@'
 
@@ -84,6 +77,12 @@ spin: int = 0
 compare: int = None
 
 
+def create_node(name: str):
+    global network
+    network[name] = [0, False, 0, False]
+    conections[name] = []
+
+
 def cycle() -> None:
     """
     Every cycle, this function updates the values in network based on the changes
@@ -94,7 +93,9 @@ def cycle() -> None:
     global path
     global flow
     global orb
-
+    for x in path:
+        if not(network.get(x)):
+            raise NameError('Node does not exist')
     for x in network:
         if not network[x][SET_LOC]:
             network[x][FLOW_LOC] = flow * (x in path)
@@ -113,7 +114,11 @@ def origin_set(new_origin: str) -> None:
     NOTE: This does not replace the old path. To reset use `PTH`
     """
     global origin
+    global path
     origin = new_origin
+    path = [new_origin]
+    if not (conections.get(new_origin)):
+        raise NameError('Node does not exist')
 
 
 def connect(origin: str, vars: list) -> None:
@@ -126,14 +131,10 @@ def connect(origin: str, vars: list) -> None:
     global network
     global conections
     if origin not in network.keys():
-        conections[origin] = []
+        create_node(origin)
     for x in vars:
-        if x not in conections.keys():
-            conections[x] = []
         conections[origin].append(x)
-    for x in conections.keys():
-        # [flow, orb?, set?]
-        network[x] = [0, False, 0, False]
+        create_node(x)
 
 
 def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
@@ -147,25 +148,15 @@ def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
     if vars == [INS_PATH]:
         global path
         for x in path:
+            if not (network.get(x)):
+                raise NameError('Node does not exist')
             network[x][FLOW_LOC] = flow
             network[x][SET_LOC] = setted
     for x in vars:
+        if not (network.get(x)):
+            raise NameError('Node does not exist')
         network[x][FLOW_LOC] = flow
         network[x][SET_LOC] = setted
-
-
-def node_flow_unset(vars: list) -> None:
-    """
-    'UST's a node so it's set property is removed
-    \nvars all item to set flow
-    """
-    global network
-    if vars == [INS_PATH]:
-        global path
-        for x in path:
-            network[x][SET_LOC] = False
-    for x in vars:
-        network[x][SET_LOC] = False
 
 
 def create() -> None:
@@ -192,6 +183,9 @@ def path_update(new_path: list) -> None:
     path = []
     if new_path != []:
         path = [origin] + new_path
+    for x in range(len(path) - 1):
+        if path[x+1] not in conections[path[x]]:
+            connect(path[x], [path[x+1]])
 
 
 def release() -> None:
@@ -222,9 +216,9 @@ def translate(text: str) -> None:
     """
     global instructions
     instructions = [
-        list(filter(None, map(lambda x: x.upper(),
-             x.split(INS_COMMENT[0])[0].split(INS_COMMENT[1])[0].split(' '))))
-        for x in text.strip().replace(', ', INS_DIVIDE).replace(' ,', INS_DIVIDE).replace('  ', '').replace(INS_ORIGIN, INS_ORIGIN + ' ').replace('\n', INS_NEWLINE).split(INS_NEWLINE)
+        list(filter(None, map(
+            lambda x: x.upper(), x.split(INS_COMMENT[0])[0].split(INS_COMMENT[1])[0].split(' '))))
+        for x in text.strip().replace(INS_DIVIDE + ' ', INS_DIVIDE).replace(' ' + INS_DIVIDE, INS_DIVIDE).replace('  ', '').replace(INS_ORIGIN, INS_ORIGIN + ' ').replace('\n', INS_NEWLINE).split(INS_NEWLINE)
         if x != '' and x[:2] != INS_COMMENT[0] and x[:2] != INS_COMMENT[1]
     ]
 
@@ -252,7 +246,11 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
     for x in range(data, start):
         if instructions_on:
             print(instructions[x])
-        if INS_CONNECT in instructions[x]:
+        if instructions[x] == INS_DATA:
+            pass
+        elif instructions[x][0] == INS_ORIGIN:
+            origin_set(instructions[x][1])
+        elif INS_CONNECT in instructions[x]:
             clone = instructions[x][:instructions[x].index(
                 INS_CONNECT)] + instructions[x][instructions[x].index(INS_CONNECT) + 1].split(',')
             connect(clone[0], clone[1:])
@@ -261,11 +259,17 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         elif instructions[x][0] == INS_UNSET:
             node_flow_set(vars=instructions[x][1].split(
                 ','), flow=0, setted=False)
-    x = start
+        else:
+            raise NameError(f"Invalid instruction: {instructions[x][0]}")
+    x = start + 1
     while x < len(instructions):
         if instructions_on:
             print(instructions[x])
-        if instructions[x][0] == INS_CREATE:
+        if instructions[x][0] == INS_START:
+            pass
+        elif instructions[x][0] == INS_ORIGIN:
+            origin_set(instructions[x][1])
+        elif instructions[x][0] == INS_CREATE:
             create()
         elif instructions[x][0] == INS_FLOW:
             flow_update(new_flow=int(instructions[x][1]))
@@ -277,10 +281,12 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
             compare_update()
         elif instructions[x][0] == INS_JUMP:
             x = instructions.index([instructions[x][1] + ':'])
-        elif instructions[x][0] == INS_JUMPTRUE and compare:
-            x = instructions.index([instructions[x][1] + ':'])
-        elif instructions[x][0] == INS_JUMPFALSE and not compare:
-            x = instructions.index([instructions[x][1] + ':'])
+        elif instructions[x][0] == INS_JUMPTRUE:
+            if compare:
+                x = instructions.index([instructions[x][1] + ':'])
+        elif instructions[x][0] == INS_JUMPFALSE:
+            if not compare:
+                x = instructions.index([instructions[x][1] + ':'])
         elif instructions[x][0] == INS_SET:
             node_flow_set(vars=instructions[x][1].split(
                 ','), flow=instructions[x][2])
@@ -289,12 +295,15 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
                 ','), flow=0, setted=False)
         elif instructions[x][0] == INS_END:
             break
+        else:
+            raise NameError(f"Invalid instruction: {instructions[x][0]}")
         cycle()
         x += 1
     if endstate:
         print(
             f"conections: {conections} \nnetwork : {network} \npath : {path}" +
             f"\norb : {orb} \nflow : {flow} \ncompare : {compare}")
+
     if visualize:
         vizualize_conections(visualize=visualize)
 
@@ -320,11 +329,11 @@ def vizualize_conections(filename: str = 'out', strict: bool = True, visualize: 
     g = Graph(strict=strict)
     g.node(origin, color='purple')
     for x in conections.keys():
-        if network[x][1]:
+        if network[x][ORB_LOC]:
             g.node(str(x), color='blue')
         for y in conections[x]:
             g.edge(str(x), str(y),
-                   color=('red' if y in path else 'black'))
+                   color=('red' if x in path and y in path else 'black'))
     s = Source(g, filename=filename, format="png")
     if visualize:
         s.view()
@@ -345,6 +354,8 @@ def main():
     parser.add_argument("-v", "--visualize", action="store_true",
                         help="vizualize Graph at end")
     args = parser.parse_args()
+
+    open('out.png', 'r+')
 
     run(code=filetostring(args.filename), instructions_on=args.instructions,
         endstate=args.endstate, visualize=args.visualize)
