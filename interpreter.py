@@ -5,23 +5,17 @@ Language: Python/English
 """
 
 """
-Creates globals and set their default values
-- instructions variable used to store the formated instructions
-- network used to store the current state of each node
-- conections used to store the connections between each node
-- path the current path of the ORGIN
-- orb the current state of the ORB
-- flow the current flow of the ORGIN
-- compare the current stached value of CMP
-"""
-
-"""
 KNT = 3
 ENH = 4
 BC = 5
 CNJ = 6
 MNP = 7
 TRS = 8
+"""
+
+"""
+Const for instructions and format keys.
+Can be changed but probably should not.
 """
 
 INS_NEWLINE = ';'
@@ -33,6 +27,16 @@ INS_START = ['_START:']
 
 INS_CONNECT = '->'
 INS_SET = "SET"
+INS_UNSET = "UNS"
+
+"""
+TOADD?: Beta to test in master
+Origin Shift = "@[New Origin]"
+Set Path = "SET PTH"
+Unset = "UST [var]"
+"""
+
+INS_ORIGIN = '@'
 
 INS_CREATE = "CRT"
 INS_FLOW = "FLW"
@@ -49,6 +53,17 @@ FLOW_LOC = 0
 ORB_LOC = 1
 SPIN_LOC = 2
 SET_LOC = 3
+
+"""
+Creates globals and set their default values
+- instructions variable used to store the formated instructions
+- network used to store the current state of each node
+- conections used to store the connections between each node
+- path the current path of the ORGIN
+- orb the current state of the ORB
+- flow the current flow of the ORGIN
+- compare the current stached value of CMP
+"""
 
 global instructions
 global network
@@ -72,7 +87,8 @@ compare: int = None
 def cycle() -> None:
     """
     Every cycle, this function updates the values in network based on the changes
-    inacted. Affect only globals so no argument or outputs.
+    inacted. 
+    \nAffect only globals so no argument or outputs.
     """
     global network
     global path
@@ -87,6 +103,17 @@ def cycle() -> None:
     network[path[-1]][ORB_LOC] = orb | network[path[-1]][ORB_LOC]
     if network[path[-1]][ORB_LOC]:
         network[path[-1]][SPIN_LOC] = spin
+
+
+def origin_set(new_origin: str) -> None:
+    """
+    Sets new origin to emulate new origin
+    \nnew_origin origin to replace old
+
+    NOTE: This does not replace the old path. To reset use `PTH`
+    """
+    global origin
+    origin = new_origin
 
 
 def connect(origin: str, vars: list) -> None:
@@ -109,7 +136,7 @@ def connect(origin: str, vars: list) -> None:
         network[x] = [0, False, 0, False]
 
 
-def node_flow_set(vars: list, flow: int) -> None:
+def node_flow_set(vars: list, flow: int = 1, setted: bool = True) -> None:
     """
     'SET's a node so it's flow is unchagable regarless of path
     or any other factor. Used to simulate a another ORG.
@@ -117,9 +144,28 @@ def node_flow_set(vars: list, flow: int) -> None:
     \nflow the flow to set the items in var
     """
     global network
+    if vars == [INS_PATH]:
+        global path
+        for x in path:
+            network[x][FLOW_LOC] = flow
+            network[x][SET_LOC] = setted
     for x in vars:
         network[x][FLOW_LOC] = flow
-        network[x][SET_LOC] = True
+        network[x][SET_LOC] = setted
+
+
+def node_flow_unset(vars: list) -> None:
+    """
+    'UST's a node so it's set property is removed
+    \nvars all item to set flow
+    """
+    global network
+    if vars == [INS_PATH]:
+        global path
+        for x in path:
+            network[x][SET_LOC] = False
+    for x in vars:
+        network[x][SET_LOC] = False
 
 
 def create() -> None:
@@ -130,21 +176,22 @@ def create() -> None:
     orb = not(network[path[-1]][1])
 
 
-def flow_update(instruction: list) -> None:
+def flow_update(new_flow: int) -> None:
     """
     Runs release command
     """
     global flow
-    flow = int(instruction[1])
+    flow = new_flow
 
 
-def path_update(instruction: list) -> None:
+def path_update(new_path: list) -> None:
     """
     Runs release command
     """
     global path
-    if len(instruction) != 1:
-        path = [origin] + instruction[1].split(INS_DIVIDE)
+    path = []
+    if new_path != []:
+        path = [origin] + new_path
 
 
 def release() -> None:
@@ -176,9 +223,9 @@ def translate(text: str) -> None:
     global instructions
     instructions = [
         list(filter(None, map(lambda x: x.upper(),
-             x.split(INS_COMMENT[0])[0].split(INS_COMMENT[0])[0].split(' '))))
-        for x in text.strip().replace(', ', INS_DIVIDE).replace(' ,', INS_DIVIDE).replace('  ', '').replace('\n', INS_NEWLINE).split(INS_NEWLINE)
-        if x != '' and x[:2] != INS_COMMENT[0] and x[:2] != INS_COMMENT[0]
+             x.split(INS_COMMENT[0])[0].split(INS_COMMENT[1])[0].split(' '))))
+        for x in text.strip().replace(', ', INS_DIVIDE).replace(' ,', INS_DIVIDE).replace('  ', '').replace(INS_ORIGIN, INS_ORIGIN + ' ').replace('\n', INS_NEWLINE).split(INS_NEWLINE)
+        if x != '' and x[:2] != INS_COMMENT[0] and x[:2] != INS_COMMENT[1]
     ]
 
 
@@ -209,8 +256,11 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
             clone = instructions[x][:instructions[x].index(
                 INS_CONNECT)] + instructions[x][instructions[x].index(INS_CONNECT) + 1].split(',')
             connect(clone[0], clone[1:])
-        if instructions[x][0] == INS_SET:
+        elif instructions[x][0] == INS_SET:
             node_flow_set(instructions[x][1].split(','), instructions[x][2])
+        elif instructions[x][0] == INS_UNSET:
+            node_flow_set(vars=instructions[x][1].split(
+                ','), flow=0, setted=False)
     x = start
     while x < len(instructions):
         if instructions_on:
@@ -218,9 +268,9 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         if instructions[x][0] == INS_CREATE:
             create()
         elif instructions[x][0] == INS_FLOW:
-            flow_update(instruction=instructions[x])
+            flow_update(new_flow=int(instructions[x][1]))
         elif instructions[x][0] == INS_PATH:
-            path_update(instruction=instructions[x])
+            path_update(new_path=instructions[x][1].split(INS_DIVIDE))
         elif instructions[x][0] == INS_RELEASE:
             release()
         elif instructions[x][0] == INS_COMPARE:
@@ -232,7 +282,11 @@ def run(code: str, instructions_on: bool = False, endstate: bool = False, visual
         elif instructions[x][0] == INS_JUMPFALSE and not compare:
             x = instructions.index([instructions[x][1] + ':'])
         elif instructions[x][0] == INS_SET:
-            node_flow_set(instructions[x][1].split(','), instructions[x][2])
+            node_flow_set(vars=instructions[x][1].split(
+                ','), flow=instructions[x][2])
+        elif instructions[x][0] == INS_UNSET:
+            node_flow_set(vars=instructions[x][1].split(
+                ','), flow=0, setted=False)
         elif instructions[x][0] == INS_END:
             break
         cycle()

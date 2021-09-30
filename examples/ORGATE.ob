@@ -1,9 +1,11 @@
 section .data:
   ORG -> VAR1, VAR2, VAR3
 
-  SET VAR2 1
+  SET VAR1 1
+  UNS VAR1
 
 _start:
+//dafaflf
   PTH VAR1
   CRT
   RLS
