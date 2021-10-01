@@ -1,0 +1,64 @@
+section .data:
+    $DOUBLE
+    ORG -> INP1, INP3
+    ORG -> ANS1, ANS2
+    @ORG
+    SET INP1 1
+
+_start:
+    PTH INP1
+    CRT
+    RLS
+    PTH INP3
+    CRT
+    RLS
+    PTH
+    PTH INP1
+    CRT
+    CMP
+    RLS
+    JPF l2
+    JMP l1
+
+\\No Val 1
+l1:
+    PTH INP3
+    CRT
+    CMP
+    RLS
+    JPF l3
+    JMP l4
+
+\\Val 1
+l2:
+    PTH INP3
+    CRT
+    CMP
+    RLS
+    JPF l4
+    JMP l3
+
+l3:
+    SET ANS1 1
+    JMP l4
+
+l4:
+    PTH ANS1
+    CRT
+    RLS
+    CRT
+    CMP
+    RLS
+    JPT l5
+    JMP _END
+
+l5:
+    SET ANS2 1
+    PTH ANS2
+    CRT
+    RLS
+    JMP _END
+
+_END:
+    PTH
+    END

@@ -1,0 +1,124 @@
+section .data:
+    $DOUBLE
+    ORG -> INP1, INP2, INP3, INP4
+    ORG -> ANS1, ANS2, ANS3
+    @ORG
+    SET INP4, INP1 1
+
+_start:
+    PTH INP1
+    CRT
+    RLS
+    PTH INP2
+    CRT
+    RLS
+    PTH INP3
+    CRT
+    RLS
+    PTH INP4
+    CRT
+    RLS
+    PTH
+    PTH INP1
+    CRT
+    CMP
+    RLS
+    JPF l2
+    JMP l1
+
+\\No Val 1
+l1:
+    PTH INP3
+    CRT
+    CMP
+    RLS
+    JPF l3
+    JMP l4
+
+\\Val 1
+l2:
+    PTH INP3
+    CRT
+    CMP
+    RLS
+    JPF l4
+    JMP l3
+
+l3:
+    SET ANS1 1
+    PTH ANS1
+    CRT
+    RLS
+    JMP l4
+
+l4:
+    PTH ANS1
+    CRT
+    RLS
+    CRT
+    CMP
+    RLS
+    JPT l5
+    JMP L6
+
+l5:
+    SET ANS2 1
+    PTH ANS2
+    CRT
+    RLS
+    JMP L6
+
+l6:
+    PTH
+
+    PTH INP2
+    CRT
+    CMP
+    RLS
+    JPF l7
+
+    PTH INP4
+    CRT
+    CMP
+    RLS
+    JPF l8
+
+    JMP _END
+
+l7:
+    PTH INP4
+    CRT
+    CMP
+    RLS
+    JPF l9
+    \\INP2 1 INP4 0 ANS2 0
+    JMP l10
+
+l8:
+    PTH ANS2
+    CRT
+    CMP
+    RLS
+    JPF l8.5
+    PTH ANS2
+    SET ANS2 1
+    CRT
+    RLS
+    JMP _END
+
+l8.5:
+    UST ANS2
+    JMP l9
+
+l9:
+    \\ Two are true
+    PTH ANS3
+    SET ANS3 1
+    CRT
+    RLS
+    
+    JMP _END 
+
+_END:
+    PTH
+    END

@@ -1,0 +1,35 @@
+section .data:
+    $DOUBLE
+    ORG -> DAT
+    DAT -> SWI
+    SET DAT 1
+
+_start:
+    FLW 1
+    JMP OFF
+
+OFF:
+    PTH
+    PTH DAT
+    CRT
+    CMP
+    RLS
+    JPF ON
+    JPT OFF
+    
+
+ON:
+    UST DAT
+    PTH DAT
+    PTH DAT, SWI
+    CRT
+    CMP
+    RLS
+    JPF OFF
+    JPT ON2
+
+//FOR EXPERIMENT PURPOSES STOP
+ON2:
+    PTH DAT
+    END
+    
