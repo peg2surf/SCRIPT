@@ -1,4 +1,5 @@
 section .data:
+  $DOUBLE
   ORG -> VAR1, VAR2, VAR3
   SET VAR1 1
 
